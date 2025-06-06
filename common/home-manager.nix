@@ -8,6 +8,7 @@
   isWsl,
   isServer,
   isHomeAssistant,
+  isInstaller,
   ...
 }: {
   # Import the Home Manager NixOS module
@@ -232,6 +233,12 @@
         text = ''yes'';
         force = true;
         executable = false;
+      };
+
+      # SSH Authorized Keys
+      ".ssh/authorized_keys" = {
+        text = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEae4h0Uk6x/lrmw0PZv/7GfWyLuEAVoc70AC4ykyFtX TimLisemer";
+        force = true;
       };
 
       # Terminals

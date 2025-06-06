@@ -54,13 +54,7 @@
   # Enable Power Profiles
   services.power-profiles-daemon.enable = true;
 
-  virtualisation.docker = {
-    enable = true;
-    rootless.enable = true;
-    rootless.setSocketVariable = true;
-    # daemon.settings.ipv6 = true
-    storageDriver = "btrfs";
-  };
+  virtualisation.docker.storageDriver = "btrfs";
 
   # Fix shebangs in scripts # Try to bring this back to common/common.nix however currently it breaks a lot of things for example npm
   services.envfs.enable = true;

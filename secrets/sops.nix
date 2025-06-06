@@ -13,6 +13,8 @@
   sops.secrets.github_token = {};
   sops.secrets.google_oauth_client_id = {};
   sops.secrets.cloudflare_rclone = {};
+  sops.secrets.traefikEnv = {};
+  sops.secrets.yakweideENV = {};
   sops.secrets.google-sa = {
     sopsFile = ./secrets.yaml;
     key = "google_drive_sa_json";

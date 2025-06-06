@@ -598,6 +598,71 @@ explorer() {
 }
 # ---------------------------------------------------------------------------
 
+# --- transfer_keys: transfer SSH and SOPS keys to a remote host ------
+# Copy SSH + SOPS keys to a remote host and fix ownership/permissions.
+# Usage:  transfer_keys <hostname>
+transfer_keys() {
+	# Fail fast on errors and unset vars
+	set -euo pipefail
+
+	# --- Argument check --------------------------------------------------------
+	if [[ $# -lt 1 || -z $1 ]]; then
+		echo "Usage: transfer_keys <hostname>"
+		return 1
+	fi
+	local HOSTNAME=$1
+
+	# --- Paths -----------------------------------------------------------------
+	local SOURCE_DIR="$HOME/.ssh/"
+	local DEST_DIR="/home/tim/.ssh/"
+	local KEY_FILE="id_ed25519"
+	local DEST_KEY_PATH="/etc/ssh/nixos_personal_sops_key"
+	local AGE_KEYS_FILE="$HOME/.ssh/age_keys.txt"
+	local DEST_AGE_KEYS_DIR="/home/tim/.config/sops/age/"
+	local DEST_AGE_KEYS_PATH="${DEST_AGE_KEYS_DIR}keys.txt"
+
+	# --- Preconditions ---------------------------------------------------------
+	if [[ ! -f $AGE_KEYS_FILE ]]; then
+		echo "Error: $AGE_KEYS_FILE does not exist."
+		return 1
+	fi
+
+	# --- Remote setup ----------------------------------------------------------
+	echo "Creating directory $DEST_AGE_KEYS_DIR on $HOSTNAME"
+	ssh -t root@"$HOSTNAME" "mkdir -p '$DEST_AGE_KEYS_DIR'"
+
+	# --- File transfers --------------------------------------------------------
+	echo "Transferring all files from $SOURCE_DIR to $HOSTNAME:$DEST_DIR"
+	scp -r "$SOURCE_DIR"* root@"$HOSTNAME":"$DEST_DIR"
+
+	echo "Transferring $KEY_FILE to $HOSTNAME:$DEST_KEY_PATH"
+	scp "${SOURCE_DIR}${KEY_FILE}" root@"$HOSTNAME":"$DEST_KEY_PATH"
+
+	echo "Transferring $AGE_KEYS_FILE to $HOSTNAME:$DEST_AGE_KEYS_PATH"
+	scp "$AGE_KEYS_FILE" root@"$HOSTNAME":"$DEST_AGE_KEYS_PATH"
+
+	# --- Fix ownership & permissions ------------------------------------------
+	echo "Setting permissions and ownership on $HOSTNAME"
+	ssh -t root@"$HOSTNAME" <<'REMOTE_CMDS'
+    chown -R tim /home/tim/.ssh
+    chown -R tim /home/tim/.gnupg
+    chown -R tim /home/tim/.config/sops
+
+    chmod 700 /home/tim/.ssh
+    find /home/tim/.ssh -type f -exec chmod 600 {} \;
+    find /home/tim/.ssh -type d -exec chmod 700 {} \;
+
+    chmod 600 /etc/ssh/nixos_personal_sops_key
+    chmod 700 /home/tim/.config/sops/age
+    chmod 600 /home/tim/.config/sops/age/keys.txt
+
+    chmod +x /home/tim/.ssh/transfer_keys.sh || true
+REMOTE_CMDS
+
+	echo "Transfer and setup completed."
+}
+# ---------------------------------------------------------------------------
+
 # --- ssh: custom SSH command to map hostnames to IP addresses -------------
 ssh() {
 	# capture the first argument (the “host” the user typed)

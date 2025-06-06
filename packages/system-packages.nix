@@ -6,11 +6,7 @@
   environment.systemPackages = with pkgs; [
     adw-gtk3
     alejandra
-    git
-    curl
-    wget
     nautilus-open-any-terminal
-    tree
     syncthing
     vaapiVdpau
     comfortaa
@@ -34,20 +30,10 @@
     trash-cli
     vdpauinfo
     resources
-    wl-clipboard
     rclone
     xorg.xeyes
-    btop
-    dconf2nix
-    zoxide
     distrobox
-    starship
-    nerd-fonts.jetbrains-mono
-    switcheroo-control
-    dconf2nix
     dive
-    docker
-    docker-compose
     i2c-tools
     liquidctl
     glxinfo

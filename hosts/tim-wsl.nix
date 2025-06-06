@@ -18,6 +18,7 @@
       isWsl = true;
       isServer = false;
       isHomeAssistant = false;
+      isInstaller = false;
     })
   ];
 
@@ -42,17 +43,11 @@
 
   # docker context create nixos-wsl --docker "host=tcp://localhost:2375"
   # docker context use nixos-wsl
-  virtualisation.docker = {
-    enable = true;
-    rootless.enable = false;
-    # rootless.setSocketVariable = true;
-    # daemon.settings.ipv6 = true
-    daemon.settings = {
-      # expose for Windows; remove if you only need CLI inside WSL
-      "hosts" = [
-        "unix:///var/run/docker.sock"
-        "tcp://0.0.0.0:2375"
-      ];
-    };
+  virtualisation.docker.daemon.settings = {
+    # expose for Windows; remove if you only need CLI inside WSL
+    "hosts" = [
+      "unix:///var/run/docker.sock"
+      "tcp://0.0.0.0:2375"
+    ];
   };
 }

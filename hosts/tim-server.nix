@@ -19,6 +19,7 @@
       isWsl = false;
       isServer = true;
       isHomeAssistant = false;
+      isInstaller = false;
     })
   ];
 
@@ -37,27 +38,156 @@
   environment.systemPackages = with pkgs; [
   ];
 
-  # docker context create nixos-wsl --docker "host=tcp://localhost:2375"
-  # docker context use nixos-wsl
-  virtualisation.docker = {
-    enable = true;
-    rootless.enable = true;
-    rootless.setSocketVariable = true;
-    # daemon.settings.ipv6 = true
-  };
+  virtualisation.docker.storageDriver = "btrfs";
 
   virtualisation.oci-containers.containers = {
-    portainer = {
-      image = "portainer/portainer-ce:lts";
+    # --------------------------------------------------------------------------
+    # yakweide-discord-bot
+    # --------------------------------------------------------------------------
+    yakweide-discord-bot = {
+      image = "ghcr.io/yakweide/yakweide-discord-bot:latest";
       autoStart = true;
-      ports = ["9000:9000"]; # Expose Portainer UI on host port 9000
-      volumes = [
-        "/var/run/docker.sock:/var/run/docker.sock" # Allow Portainer to manage Docker
-        "/var/lib/portainer:/data" # Persistent Portainer data
+
+      extraOptions = [
+        "--network=docker-network"
+        "--restart=always"
       ];
-      cmd = ["--host" "unix:///var/run/docker.sock"];
-      # Optional: if you want to limit privileges further, add extra options:
-      # extraOptions = [ "--restart=always" ];
+
+      environmentFiles = [
+        config.sops.secrets.yakweideENV.path
+      ];
+    };
+
+    # --------------------------------------------------------------------------
+    # vaultwarden
+    # --------------------------------------------------------------------------
+    vaultwarden = {
+      image = "vaultwarden/server:latest";
+      autoStart = true;
+
+      extraOptions = [
+        "--network=docker-network"
+        "--restart=always"
+      ];
+
+      ports = [
+        "4743:4743" # hostPort:containerPort
+      ];
+
+      volumes = [
+        "/mnt/docker-data/volumes/vaultwarden:/data:rw"
+      ];
+
+      environmentFiles = [
+        config.sops.secrets.traefikEnv.path
+      ];
+
+      environment = {
+        SIGNUPS_ALLOWED = "false";
+        INVITATIONS_ALLOWED = "true";
+
+        ROCKET_PROFILE = "release";
+        ROCKET_ADDRESS = "0.0.0.0";
+        ROCKET_PORT = "4743";
+
+        DEBIAN_FRONTEND = "noninteractive";
+      };
+
+      # -------------------------------------------------------------------------
+      # syncthing
+      # -------------------------------------------------------------------------
+      syncthing = {
+        image = "syncthing/syncthing:latest";
+        autoStart = true;
+
+        extraOptions = [
+          "--network=docker-network"
+          "--restart=always"
+        ];
+
+        # TCP and UDP ports – duplicates from the original command removed
+        ports = [
+          "21027:21027/tcp"
+          "21027:21027/udp"
+          "22000:22000/tcp"
+          "22000:22000/udp"
+          "22067:22067/tcp"
+          "22067:22067/udp"
+          "8384:8384" # Syncthing UI
+        ];
+
+        volumes = [
+          "/mnt/docker-data/volumes/syncthing:/var/syncthing:rw"
+        ];
+
+        environment = {
+          PUID = "1000";
+          PGID = "1000";
+          HOME = "/var/syncthing";
+          STGUIADDRESS = "0.0.0.0:8384";
+          STHOMEDIR = "/var/syncthing/config";
+        };
+      };
+
+      # -------------------------------------------------------------------------
+      # traefik  (uses a secret file for the Cloudflare token)
+      # -------------------------------------------------------------------------
+      traefik = {
+        image = "traefik:latest";
+        autoStart = true;
+
+        extraOptions = [
+          "--network=docker-network"
+          "--restart=always"
+        ];
+
+        ports = [
+          "443:443"
+          "80:80"
+          "8085:8080" # Traefik dashboard
+        ];
+
+        volumes = [
+          "/mnt/docker-data/volumes/traefik:/etc/traefik:rw"
+          "/var/run/docker.sock:/var/run/docker.sock:rw"
+        ];
+
+        # Every key=value in this file becomes a container env-var.
+        # Put *only* secrets in there to keep the file small.
+        environmentFiles = [
+          config.sops.secrets.traefikEnv.path
+        ];
+
+        # Non-secret variables can stay inline.
+        environment = {
+          # Keys with dots must be quoted to be valid Nix attribute names
+          "traefik.http.routers.api.rule" = "Host(`traefik.local.yakweide.de`)";
+          "traefik.http.routers.api.entryPoints" = "https";
+          "traefik.http.routers.api.service" = "api@internal";
+          "traefik.enable" = "true";
+        };
+      };
+
+      # -------------------------------------------------------------------------
+      # portainer_agent
+      # -------------------------------------------------------------------------
+      portainer_agent = {
+        image = "portainer/agent:latest";
+        autoStart = true;
+
+        extraOptions = [
+          "--network=bridge" # exactly as in your docker run
+          "--restart=always"
+        ];
+
+        ports = ["9001:9001"];
+
+        volumes = [
+          "/mnt/docker-data/volumes:/var/lib/docker/volumes:rw"
+          "/var/run/docker.sock:/var/run/docker.sock:rw"
+        ];
+        # No environment values needed for the agent
+      };
     };
   };
 }

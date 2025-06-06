@@ -23,6 +23,14 @@
 in {
   imports = [
     ./common.nix
+    (import ../common/home-manager.nix {
+      inherit config pkgs inputs home-manager lib;
+      isDesktop = false;
+      isWsl = false;
+      isServer = false;
+      isHomeAssistant = false;
+      isInstaller = true;
+    })
   ];
 
   environment.etc."install-closure".source = "${closureInfo}/store-paths";

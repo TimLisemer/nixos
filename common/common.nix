@@ -68,7 +68,8 @@
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
-    settings.PermitRootLogin = "yes";
+    settings.PermitRootLogin = "no";
+    settings.PasswordAuthentication = false;
   };
 
   # VSCode Server
@@ -80,6 +81,13 @@
   virtualisation.containers.enable = true;
   virtualisation.containers.registries.search = ["docker.io"];
   virtualisation.oci-containers.backend = "docker";
+  virtualisation.docker = {
+    enable = true;
+    rootless.enable = false; # Use rootful Docker
+    rootless.setSocketVariable = true;
+    # daemon.settings.ipv6 = true
+    daemon.settings.data-root = "/mnt/docker-data";
+  };
 
   # Unrestrict ports below 1000
   boot.kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 0;
@@ -155,6 +163,23 @@
       "x-systemd.after=network-online.target"
     ];
   };
+
+  environment.systemPackages = with pkgs; [
+    git
+    curl
+    wget
+    tree
+    blesh
+    wl-clipboard
+    starship
+    zoxide
+    dconf2nix
+    btop
+    docker
+    docker-compose
+    nerd-fonts.jetbrains-mono
+    switcheroo-control
+  ];
 
   # Open ports in the firewall
   # networking.firewall.allowedTCPPorts = [ ... ];
