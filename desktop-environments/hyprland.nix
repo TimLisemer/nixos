@@ -10,6 +10,7 @@
     kitty # Terminal
     wofi
     cliphist
+    ags
   ];
 
   services.gnome.gnome-keyring.enable = true;

@@ -7,6 +7,17 @@
     flatpaks.url = "github:GermanBread/declarative-flatpak/stable-v3";
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
 
+    astal = {
+      url = "github:aylur/astal";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
+
+    ags = {
+      url = "github:aylur/ags";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+      inputs.astal.follows = "astal";
+    };
+
     alejandra = {
       # Nix formatter -> https://drakerossman.com/blog/overview-of-nix-formatters-ecosystem
       url = "github:kamadorueda/alejandra/4.0.0";
