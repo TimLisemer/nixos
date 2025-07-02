@@ -40,6 +40,16 @@ in {
           core.eol = "lf";
         };
       };
+      home.file = {
+        ".config/ags" = {
+          source = builtins.toPath ../files/ags;
+          force = true;
+        };
+        ".config/hypr/hyprland.conf" = {
+          source = builtins.toPath ../files/hypr/hyprland.conf;
+          force = true;
+        };
+      };
     })
     users;
 }

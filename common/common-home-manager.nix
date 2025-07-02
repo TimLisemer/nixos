@@ -67,14 +67,6 @@ in {
   };
 
   home.file = {
-    ".config/ags" = {
-      source = builtins.toPath ../files/ags;
-      force = true;
-    };
-    ".config/hypr" = {
-      source = builtins.toPath ../files/hypr;
-      force = true;
-    };
     ".stignore" = {
       source = builtins.toPath ../files/stignore;
       force = true;
