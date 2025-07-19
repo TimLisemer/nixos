@@ -40,9 +40,9 @@
     restartUnits = ["restic-backups-${hostName}.service"];
   };
 
-  sops.secrets.openvpn_ca = {};
-  sops.secrets.openvpn_extra_certs = {};
-  sops.secrets.openvpn_cert = {};
-  sops.secrets.openvpn_key = {};
-  sops.secrets.openvpn_ta = {};
+  sops.secrets.openvpn_ca = {owner = "nm-openvpn";};
+  sops.secrets.openvpn_extra_certs = {group = "nm-openvpn";};
+  sops.secrets.openvpn_cert = {group = "nm-openvpn";};
+  sops.secrets.openvpn_key = {group = "nm-openvpn";};
+  sops.secrets.openvpn_ta = {group = "nm-openvpn";};
 }

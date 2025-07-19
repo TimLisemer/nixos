@@ -37,6 +37,7 @@
     inetutils
     nmap
     ripgrep
+    openvpn
     trash-cli
     vdpauinfo
     resources
